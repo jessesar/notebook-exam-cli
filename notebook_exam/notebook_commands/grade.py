@@ -77,7 +77,7 @@ def divide_submissions(submissions_folder, graders):
             answers_subset.to_csv('divided-submissions/%s/student-answers.csv' % grader, encoding='utf8')
           
     print Fore.GREEN + ('Exam submissions have been divided among: %s' % ', '.join(graders))
-    print 'Their folders can be found in submissions/.' + Style.RESET_ALL
+    print 'Their folders can be found in divided-submissions/.' + Style.RESET_ALL
     
 @click.command('merge-results')
 @click.argument('submissions_folder')
