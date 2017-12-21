@@ -67,13 +67,19 @@ class Client():
 def upload_file(client, path):
     upload_pass = client.send_and_recv('request-upload')
     
-    with pysftp.Connection(self.hub_host, username='delivery', password=upload_pass) as sftp:
+    cnopts = pysftp.CnOpts()
+    cnopts.hostkeys = None
+    
+    with pysftp.Connection(self.hub_host, username='delivery', password=upload_pass, cnopts=cnopts) as sftp:
         with sftp.cd('/incoming'):
             sftp.put(path)
             
 def download_file(client, path):
     upload_pass = client.send_and_recv('request-upload')
     
-    with pysftp.Connection(self.hub_host, username='delivery', password=upload_pass) as sftp:
+    cnopts = pysftp.CnOpts()
+    cnopts.hostkeys = None
+    
+    with pysftp.Connection(self.hub_host, username='delivery', password=upload_pass, cnopts=cnopts) as sftp:
         with sftp.cd('/incoming'):
             sftp.get(path)
