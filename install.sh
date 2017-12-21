@@ -10,9 +10,15 @@ echo "Installing notebook-exam module..."
 pip uninstall -y notebook-exam 1> /dev/null
 pip install https://github.com/jessesar/notebook-exam-cli/archive/master.zip 1> /dev/null
 
-echo "Installing questions module..."
+echo "Installing questions module (Python 2.7)..."
 pip uninstall -y questions 1> /dev/null
+
 pip install https://github.com/jessesar/uva-questions/archive/master.zip 1> /dev/null
+
+if hash pip3 2>/dev/null; then
+    echo "Installing questions module (Python 3)..."
+    pip3 install https://github.com/jessesar/uva-questions/archive/master.zip 1> /dev/null
+fi
 
 bold=$(tput bold)
 normal=$(tput sgr0)
