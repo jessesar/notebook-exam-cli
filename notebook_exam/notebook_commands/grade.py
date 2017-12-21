@@ -57,8 +57,8 @@ def divide_submissions(submissions_folder, graders):
     if os.path.exists('%s/student-answers.csv' % submissions_folder):
         answers = pd.read_csv('%s/student-answers.csv' % submissions_folder, dtype={ 'student': str })
         
-        answers.set_index(['student', 'question'], inplace=True)
-        answers.sort_index(level=0, inplace=True)
+        #answers.set_index(['student', 'question'], inplace=True)
+        #answers.sort_index(level=0, inplace=True)
     else:
         answers = None
 
@@ -72,9 +72,11 @@ def divide_submissions(submissions_folder, graders):
         student_ids = [ os.path.basename(notebook).split('.')[0].split('_')[-1] for notebook in notebooks ]
         
         if answers is not None:
-            answers_subset = answers.loc[student_ids]
+            print grader
+            answers_subset = answers[answers['student'].isin(student_ids)]
+            #answers_subset = answers.loc[student_ids]
             
-            answers_subset.to_csv('divided-submissions/%s/student-answers.csv' % grader, encoding='utf8')
+            answers_subset.to_csv('divided-submissions/%s/student-answers.csv' % grader, index=False, encoding='utf8')
           
     print Fore.GREEN + ('Exam submissions have been divided among: %s' % ', '.join(graders))
     print 'Their folders can be found in divided-submissions/.' + Style.RESET_ALL
@@ -110,6 +112,13 @@ def calculate_grades(results_file, maximum_score):
 @click.argument('answer_model_file')
 def auto_score(submissions_folder, answer_model_file):
     def check_answer(row):
+        def isfloat(value):
+            try:
+                float(value)
+                return True
+            except ValueError:
+                return False
+        
         if not pd.isnull(row['answer-spec']):
             X = row['answer']
             r = False
