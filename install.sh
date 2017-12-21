@@ -22,8 +22,8 @@ fi
 
 if [ -f ~/anaconda/envs/python3/bin/pip ]; then
     echo "Installing questions module (Python 3)..."
-    pip3 uninstall -y questions 1> /dev/null
-    pip3 install https://github.com/jessesar/uva-questions/archive/master.zip 1> /dev/null
+    ~/anaconda/envs/python3/bin/pip uninstall -y questions 1> /dev/null
+    ~/anaconda/envs/python3/bin/pip install https://github.com/jessesar/uva-questions/archive/master.zip 1> /dev/null
 fi
 
 bold=$(tput bold)
