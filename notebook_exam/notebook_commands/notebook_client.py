@@ -6,6 +6,8 @@ import pysftp
 class AuthException(Exception):
     pass
     
+hub_host = 'notebookexam.fnwi.uva.nl'
+    
 class Client():
     hub_host = 'notebookexam.fnwi.uva.nl'
     
@@ -70,7 +72,7 @@ def upload_file(client, path):
     cnopts = pysftp.CnOpts()
     cnopts.hostkeys = None
     
-    with pysftp.Connection(self.hub_host, username='delivery', password=upload_pass, cnopts=cnopts) as sftp:
+    with pysftp.Connection(hub_host, username='delivery', password=upload_pass, cnopts=cnopts) as sftp:
         with sftp.cd('/incoming'):
             sftp.put(path)
             
@@ -80,6 +82,6 @@ def download_file(client, path):
     cnopts = pysftp.CnOpts()
     cnopts.hostkeys = None
     
-    with pysftp.Connection(self.hub_host, username='delivery', password=upload_pass, cnopts=cnopts) as sftp:
+    with pysftp.Connection(hub_host, username='delivery', password=upload_pass, cnopts=cnopts) as sftp:
         with sftp.cd('/incoming'):
             sftp.get(path)
