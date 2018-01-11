@@ -44,6 +44,7 @@ if os.path.exists(home +'/.notebook-exam-password'):
 	import notebook_commands.provision
 	import notebook_commands.prepare
 	import notebook_commands.grade
+	import notebook_commands.notebook
 	
 	@cli.group()
 	def prepare():
@@ -69,6 +70,11 @@ if os.path.exists(home +'/.notebook-exam-password'):
 	def grade():
 		'''Commands for grading exams.'''
 		pass
+
+	@cli.group()
+	def notebook():
+		'''Commands for notebook environment.'''
+		pass
 	
 	prepare.add_command(notebook_commands.prepare.student_notebook)
 	setup.add_command(notebook_commands.setup.exam)
@@ -81,3 +87,4 @@ if os.path.exists(home +'/.notebook-exam-password'):
 	grade.add_command(notebook_commands.grade.merge_results)
 	grade.add_command(notebook_commands.grade.calculate_grades)
 	grade.add_command(notebook_commands.grade.auto_score)
+	notebook.add_command(notebook_commands.notebook.start)

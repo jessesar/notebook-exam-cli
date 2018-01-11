@@ -12,4 +12,7 @@ setup(
         'pysftp'
     ],
     entry_points={ 'console_scripts': ['notebook-exam=notebook_exam:cli'] },
+
+    package_data={'': ['notebook_commands/scripts/*']},
+    include_package_data=True,
 )

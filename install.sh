@@ -26,6 +26,10 @@ if [ -f ~/anaconda/envs/python3/bin/pip ]; then
     ~/anaconda/envs/python3/bin/pip install https://github.com/jessesar/uva-questions/archive/master.zip 1> /dev/null
 fi
 
+echo "Enabling Jupyter Widgets..."
+
+jupyter nbextension enable --py widgetsnbextension
+
 bold=$(tput bold)
 normal=$(tput sgr0)
 
