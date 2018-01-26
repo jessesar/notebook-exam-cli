@@ -49,6 +49,12 @@ def divide_submissions(submissions_folder, graders):
     graders = graders.split(',')
     
     notebooks = glob('%s/*.ipynb' % submissions_folder)
+    if not len(notebooks):
+        foldered = True
+        notebooks = glob('%s/*/*.ipynb' % submissions_folder)
+    else:
+        foldered = False
+    
     shuffle(notebooks)
     
     chunks = [ list(l) for l in np.array_split(notebooks, len(graders)) ]
@@ -60,19 +66,52 @@ def divide_submissions(submissions_folder, graders):
         #answers.set_index(['student', 'question'], inplace=True)
         #answers.sort_index(level=0, inplace=True)
     else:
-        answers = None
+        #answers = None
+        
+        if os.path.exists('answer-model.json'):
+            answer_model_file = 'answer-model.json'
+        elif os.path.exists('%s/answer-model.json' % submissions_folder):
+            answer_model_file = '%s/answer-model.json' % submissions_folder
+        else:
+            answer_model_file = None
+             
+        if answer_model_file:
+            answer_model = json.load(open(answer_model_file))
+            
+            all_answers = { f.split('/')[-2]: json.load(open(f)) for f in glob('%s/*/answers.json' % submissions_folder) }
+            all_answers = { (student, question): all_answers[student][question] for student in all_answers for question in all_answers[student] }
+            
+            answers = pd.DataFrame.from_dict(all_answers).transpose()
+            answers['score'] = None
+            
+            answers = answers[['score', 'answer']]
+            answers.index.names = ['student', 'question']
+            
+            answers.to_csv('student-answers.csv', encoding='utf8')
+            
+            answers = pd.read_csv('student-answers.csv', dtype={ 'student': str })
 
     os.makedirs('divided-submissions')
     for grader, notebooks in notebook_by_grader:
         os.makedirs('divided-submissions/%s' % grader)
         
+        if answer_model_file:
+            copyfile(answer_model_file, 'divided-submissions/%s/answer-model.json' % grader)
+        
         for notebook in notebooks:
-            copyfile(notebook, 'divided-submissions/%s/%s' % (grader, os.path.basename(notebook)))
-            
-        student_ids = [ os.path.basename(notebook).split('.')[0].split('_')[-1] for notebook in notebooks ]
+            if foldered:
+                student_id = notebook.split('/')[-2]
+                
+                copyfile(notebook, 'divided-submissions/%s/%s.ipynb' % (grader, student_id))
+            else:
+                copyfile(notebook, 'divided-submissions/%s/%s' % (grader, os.path.basename(notebook)))
+        
+        if foldered:
+            student_ids = [ notebook.split('/')[-2] for notebook in notebooks ]
+        else:
+            student_ids = [ os.path.basename(notebook).split('.')[0].split('_')[-1] for notebook in notebooks ]
         
         if answers is not None:
-            print grader
             answers_subset = answers[answers['student'].isin(student_ids)]
             #answers_subset = answers.loc[student_ids]
             
