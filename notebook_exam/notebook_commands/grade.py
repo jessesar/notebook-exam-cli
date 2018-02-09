@@ -141,6 +141,8 @@ def calculate_grades(results_file, maximum_score):
     grades = (results.groupby('student').sum() / float(maximum_score)) * 10
     grades = grades.fillna(0)
     
+    del grades['answer']
+    
     grades.to_csv('grades.csv')
     
     print 'Grades are calculated using the formula: (score / max) * 10.'
