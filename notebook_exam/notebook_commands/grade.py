@@ -36,11 +36,11 @@ def collect_submissions(exam_name):
     c = Client(password=interface_password)
     download_file(c, 'submissions.zip')
     
-    execute('unzip -q submissions.zip -d all-submissions/')
+    execute('unzip -q submissions.zip -d hub-submissions/')
     execute('rm -f submissions.zip')
 
     print
-    print Fore.GREEN + ('Exam submissions for exam "%s" have been saved to all-submissions/.' % exam_name) + Style.RESET_ALL
+    print Fore.GREEN + ('Exam submissions for exam "%s" have been saved to hub-submissions/.' % exam_name) + Style.RESET_ALL
     
 @click.command('divide-submissions')
 @click.argument('submissions_folder')
@@ -66,16 +66,18 @@ def divide_submissions(submissions_folder, graders):
         #answers.set_index(['student', 'question'], inplace=True)
         #answers.sort_index(level=0, inplace=True)
     else:
-        #answers = None
+        answers = None
         
         if os.path.exists('answer-model.json'):
             answer_model_file = 'answer-model.json'
+        elif os.path.exists('%s/answer-model.json' % os.path.dirname(submissions_folder)):
+            answer_model_file = '%s/answer-model.json' % os.path.dirname(submissions_folder)
         elif os.path.exists('%s/answer-model.json' % submissions_folder):
             answer_model_file = '%s/answer-model.json' % submissions_folder
         else:
             answer_model_file = None
              
-        if answer_model_file:
+        if answer_model_file and len(glob('%s/*/answers.json' % submissions_folder)):
             answer_model = json.load(open(answer_model_file))
             
             all_answers = { f.split('/')[-2]: json.load(open(f)) for f in glob('%s/*/answers.json' % submissions_folder) }
@@ -90,6 +92,11 @@ def divide_submissions(submissions_folder, graders):
             answers.to_csv('student-answers.csv', encoding='utf8')
             
             answers = pd.read_csv('student-answers.csv', dtype={ 'student': str })
+        else:
+            # Create empty answers-file
+            empty_answers = pd.DataFrame(columns=['student', 'question', 'score', 'answer'])
+            empty_answers.to_csv('student-answers.csv', index=False, encoding='utf8')
+        
 
     os.makedirs('divided-submissions')
     for grader, notebooks in notebook_by_grader:
@@ -106,24 +113,27 @@ def divide_submissions(submissions_folder, graders):
             else:
                 copyfile(notebook, 'divided-submissions/%s/%s' % (grader, os.path.basename(notebook)))
         
-        if foldered:
-            student_ids = [ notebook.split('/')[-2] for notebook in notebooks ]
-        else:
-            student_ids = [ os.path.basename(notebook).split('.')[0].split('_')[-1] for notebook in notebooks ]
-        
         if answers is not None:
+            if foldered:
+                student_ids = [ notebook.split('/')[-2] for notebook in notebooks ]
+            else:
+                student_ids = [ os.path.basename(notebook).split('.')[0].split('_')[-1] for notebook in notebooks ]
+             
             answers_subset = answers[answers['student'].isin(student_ids)]
             #answers_subset = answers.loc[student_ids]
             
             answers_subset.to_csv('divided-submissions/%s/student-answers.csv' % grader, index=False, encoding='utf8')
+        else:
+            empty_answers.to_csv('divided-submissions/%s/student-answers.csv' % grader, index=False, encoding='utf8')
+            
           
     print Fore.GREEN + ('Exam submissions have been divided among: %s' % ', '.join(graders))
     print 'Their folders can be found in divided-submissions/.' + Style.RESET_ALL
     
 @click.command('merge-results')
-@click.argument('submissions_folder')
-def merge_results(submissions_folder):
-    results_files = glob('%s/*/student-answers.csv' % submissions_folder)
+@click.argument('divided_submissions_folder')
+def merge_results(divided_submissions_folder):
+    results_files = glob('%s/*/student-answers.csv' % divided_submissions_folder)
     
     results_dfs = [ pd.read_csv(f, dtype={ 'student': str }).set_index(['student', 'question']) for f in results_files ]
     all_results = pd.concat(results_dfs).sort_index(level=0)
